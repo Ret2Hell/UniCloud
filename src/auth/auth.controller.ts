@@ -5,7 +5,6 @@ import {
   HttpStatus,
   HttpException,
   HttpCode,
-  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -23,6 +22,8 @@ import { TokensResponseDto } from './dto/tokens-response.dto';
 import { ConfigService } from '@nestjs/config';
 import { ResponseUtil } from 'src/utils/reponse.util';
 import { Cookie } from './decorators/cookie.decorator';
+import { GetUser } from './decorators/get-user.decorator';
+import { User } from '@prisma/client';
 
 interface CustomError {
   message: string;
@@ -108,18 +109,9 @@ export class AuthController {
     status: 401,
     description: 'Unauthorized - Invalid or expired token',
   })
-  async logout(
-    @Req()
-    req: {
-      user: {
-        user_id: string;
-      };
-    },
-    @Cookie() response: Response,
-  ) {
+  async logout(@GetUser() user: User, @Cookie() response: Response) {
     try {
-      console.log(req.user);
-      await this.authService.logout(req.user.user_id);
+      await this.authService.logout(user.user_id);
       this.removeAuthCookies(response);
       return ResponseUtil.success('Logged out successfully', null);
     } catch (error) {
