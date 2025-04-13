@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserInput } from './dto/create-user.input';
+import { UpdateUserInput } from './dto/update-user.input';
 import { PrismaService } from '../prisma/prisma.service';
-import { User } from '@prisma/client';
-import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -10,19 +9,27 @@ export class UsersService {
 
   /**
    * Create a new user
-   * @param createUserDto
-   * @returns user_id, username, email
+   * @param createUserInput
+   * @returns id, username, email
    * @throws ConflictException
    */
-  async create(
-    createUserDto: CreateUserDto,
-  ): Promise<Pick<User, 'user_id' | 'username' | 'email'>> {
-    return this.prisma.user.create({
+  async create(createUserInput: CreateUserInput) {
+    return await this.prisma.user.create({
       data: {
-        ...createUserDto,
+        ...createUserInput,
       },
       select: {
-        user_id: true,
+        id: true,
+        username: true,
+        email: true,
+      },
+    });
+  }
+
+  findAll() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
         username: true,
         email: true,
       },
@@ -30,49 +37,31 @@ export class UsersService {
   }
 
   /**
-   * Find a user by email
-   * @param email
+   * Find a user by ID, email, or username
+   * @param identifier
    * @returns User
    * @throws NotFoundException
    */
-  async findUserByEmail(email: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({
-      where: { email },
+  async findOne(identifier: {
+    id?: string;
+    email?: string;
+    username?: string;
+  }) {
+    const { id, email, username } = identifier;
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ id }, { email }, { username }],
+      },
     });
+
+    return user;
   }
 
-  /**
-   * Find a user by ID
-   * @param id
-   * @returns User
-   * @throws NotFoundException
-   */
-  async findUserById(id: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({
-      where: { user_id: id },
-    });
-  }
-
-  /**
-   * Find a user by username
-   * @param username
-   * @returns User
-   */
-  async findUserByUsername(username: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({
-      where: { username },
-    });
-  }
-
-  /**
-   * Update a user
-   * @param updateUserDto
-   * @returns User
-   */
-  async update(updateUserDto: UpdateUserDto): Promise<User> {
-    const { user_id, ...data } = updateUserDto;
+  async update(updateUserInput: UpdateUserInput) {
+    const { id, ...data } = updateUserInput;
     return await this.prisma.user.update({
-      where: { user_id },
+      where: { id },
       data,
     });
   }

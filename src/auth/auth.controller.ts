@@ -7,7 +7,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { CreateUserInput } from 'src/users/dto/create-user.input';
 import { SignInDto } from './dto/sign-in.dto';
 import {
   ApiTags,
@@ -40,7 +40,7 @@ export class AuthController {
   @Public()
   @Post('sign-up')
   @ApiOperation({ summary: 'Register a new user' })
-  @ApiBody({ type: CreateUserDto })
+  @ApiBody({ type: CreateUserInput })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'User successfully registered',
@@ -49,7 +49,7 @@ export class AuthController {
     status: HttpStatus.CONFLICT,
     description: 'Email already exists',
   })
-  async signUp(@Body() signUpDto: CreateUserDto) {
+  async signUp(@Body() signUpDto: CreateUserInput) {
     try {
       const result = await this.authService.signUp(signUpDto);
       return ResponseUtil.success(
@@ -108,9 +108,8 @@ export class AuthController {
     status: 401,
     description: 'Unauthorized - Invalid or expired token',
   })
-  async logout(@GetUser('user_id') id: string, @Cookie() response: Response) {
+  async logout(@GetUser('sub') id: string, @Cookie() response: Response) {
     try {
-      console.log(id);
       await this.authService.logout(id);
       this.removeAuthCookies(response);
       return ResponseUtil.success('Logged out successfully', null);

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { HashingService } from './hashing/hashing.service';
 import { UsersService } from 'src/users/users.service';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { CreateUserInput } from 'src/users/dto/create-user.input';
 import { SignInDto } from './dto/sign-in.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -19,7 +19,7 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async signUp(signUpDto: CreateUserDto) {
+  async signUp(signUpDto: CreateUserInput) {
     // Validate password strength
     if (!this.isPasswordStrong(signUpDto.password)) {
       throw new BadRequestException(
@@ -28,16 +28,16 @@ export class AuthService {
     }
 
     // check if a user with the same email already exists
-    const existingUser = await this.usersService.findUserByEmail(
-      signUpDto.email,
-    );
+    const existingUser = await this.usersService.findOne({
+      email: signUpDto.email,
+    });
     if (existingUser) {
       throw new BadRequestException('Email already registered');
     }
     // check if a user with the same username already exists
-    const existingUsername = await this.usersService.findUserByUsername(
-      signUpDto.username,
-    );
+    const existingUsername = await this.usersService.findOne({
+      username: signUpDto.username,
+    });
     if (existingUsername) {
       throw new BadRequestException('Username already taken');
     }
@@ -52,7 +52,7 @@ export class AuthService {
 
   async signIn(signInDto: SignInDto) {
     // Check if the user exists
-    const user = await this.usersService.findUserByEmail(signInDto.email);
+    const user = await this.usersService.findOne({ email: signInDto.email });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -67,7 +67,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const access_token = await this.generateAccessToken(user.user_id);
+    const access_token = await this.generateAccessToken(user.id);
 
     // Update both tokens in database
     await this.usersService.update({
@@ -80,8 +80,8 @@ export class AuthService {
     };
   }
 
-  async logout(userId: string) {
-    const user = await this.usersService.findUserById(userId);
+  async logout(id: string) {
+    const user = await this.usersService.findOne({ id });
 
     if (!user) {
       throw new BadRequestException('User not found');
@@ -100,9 +100,9 @@ export class AuthService {
     return strongPasswordRegex.test(password);
   }
 
-  private async generateAccessToken(user_id: string) {
+  private async generateAccessToken(id: string) {
     const payload = {
-      sub: user_id,
+      sub: id,
       type: 'access',
     };
     return await this.jwtService.signAsync(payload, {
