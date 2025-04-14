@@ -17,7 +17,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     super();
   }
 
-  getRequest(context: ExecutionContext) {
+  getRequest(context: ExecutionContext): Request {
     // Determine the context type
     const contextType = context.getType<'http' | 'graphql'>();
 

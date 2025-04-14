@@ -1,4 +1,22 @@
 declare global {
+  interface LayoutProps {
+    children: ReactNode;
+  }
+
+  interface FormNavigationProps {
+    mainActionLabel: string;
+    secondaryAction: {
+      label: string;
+      href: string;
+    };
+    isLoading?: boolean;
+  }
+
+  interface AuthHeaderProps {
+    title: string;
+    description: string;
+  }
+
   interface User {
     id: string;
     username: string;

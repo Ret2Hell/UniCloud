@@ -1,25 +1,15 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { BaseQueryApi, FetchArgs } from "@reduxjs/toolkit/query";
-import { User } from "@clerk/nextjs/server";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Clerk } from "@clerk/clerk-js";
 import { toast } from "sonner";
 
 const customBaseQuery = async (
   args: string | FetchArgs,
   api: BaseQueryApi,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extraOptions: any,
+  extraOptions: any
 ) => {
   const baseQuery = fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
-    prepareHeaders: async (headers) => {
-      const token = await window.Clerk?.session?.getToken();
-      if (token) {
-        headers.set("authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
   });
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,171 +51,34 @@ const customBaseQuery = async (
 export const api = createApi({
   baseQuery: customBaseQuery,
   reducerPath: "api",
-  tagTypes: ["Courses", "Users", "UserCourseProgress"],
+  tagTypes: [],
   endpoints: (builder) => ({
     /*
     =================
-    USER CLERK ENDPOINTS
+    USER ENDPOINTS
     =================
     */
-    updateUser: builder.mutation<User, Partial<User> & { userId: string }>({
-      query: ({ userId, ...updatedUser }) => ({
-        url: `users/clerk/${userId}`,
-        method: "PUT",
-        body: updatedUser,
-      }),
-      invalidatesTags: ["Users"],
-    }),
-    /*
-    ================
-    COURSES ENDPOINTS
-    ================
-    */
-    getCourses: builder.query<Course[], { category?: string }>({
-      query: ({ category }) => ({
-        url: "courses",
-        params: { category },
-      }),
-      providesTags: ["Courses"],
-    }),
-    getCourse: builder.query<Course, string>({
-      query: (id) => `courses/${id}`,
-      providesTags: (result, error, id) => [{ type: "Courses", id }],
-    }),
-    createCourse: builder.mutation<
-      Course,
-      {
-        teacherId: string;
-        teacherName: string;
-      }
-    >({
-      query: (body) => ({
-        url: "courses",
+    register: builder.mutation({
+      query: (registerData) => ({
+        url: "/api/auth/sign-up",
         method: "POST",
-        body,
+        body: registerData,
       }),
-      invalidatesTags: ["Courses"],
     }),
-    updateCourse: builder.mutation<
-      Course,
-      {
-        courseId: string;
-        formData: FormData;
-      }
-    >({
-      query: ({ courseId, formData }) => ({
-        url: `courses/${courseId}`,
-        method: "PUT",
-        body: formData,
-      }),
-      invalidatesTags: (result, error, { courseId }) => [
-        { type: "Courses", id: courseId },
-      ],
-    }),
-    deleteCourse: builder.mutation<{ message: string }, string>({
-      query: (courseId) => ({
-        url: `courses/${courseId}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Courses"],
-    }),
-    /*
-    =================
-    TRANSACTIONS ENDPOINTS
-    =================
-    */
-    getTransactions: builder.query<Transaction[], string>({
-      query: (userId) => `transactions?userId=${userId}`,
-    }),
-    createStripePaymentIntent: builder.mutation<
-      { clientSecret: string },
-      { amount: number }
-    >({
-      query: ({ amount }) => ({
-        url: "/transactions/stripe/payment-intent",
+    login: builder.mutation({
+      query: (loginData) => ({
+        url: "/api/auth/sign-in",
         method: "POST",
-        body: { amount },
+        body: loginData,
       }),
     }),
-    createTransaction: builder.mutation<Transaction, Partial<Transaction>>({
-      query: (transaction) => ({
-        url: "transactions",
+    logout: builder.mutation({
+      query: () => ({
+        url: "/api/auth/logout",
         method: "POST",
-        body: transaction,
       }),
-    }),
-
-    /* 
-    ===============
-    USER COURSE PROGRESS
-    =============== 
-    */
-    getUserEnrolledCourses: builder.query<Course[], string>({
-      query: (userId) => `users/course-progress/${userId}/enrolled-courses`,
-      providesTags: ["Courses", "UserCourseProgress"],
-    }),
-
-    getUserCourseProgress: builder.query<
-      UserCourseProgress,
-      { userId: string; courseId: string }
-    >({
-      query: ({ userId, courseId }) =>
-        `users/course-progress/${userId}/courses/${courseId}`,
-      providesTags: ["UserCourseProgress"],
-    }),
-    updateUserCourseProgress: builder.mutation<
-      UserCourseProgress,
-      {
-        userId: string;
-        courseId: string;
-        progressData: {
-          sections: SectionProgress[];
-        };
-      }
-    >({
-      query: ({ userId, courseId, progressData }) => ({
-        url: `users/course-progress/${userId}/courses/${courseId}`,
-        method: "PUT",
-        body: progressData,
-      }),
-      invalidatesTags: ["UserCourseProgress"],
-      async onQueryStarted(
-        { userId, courseId, progressData },
-        { dispatch, queryFulfilled },
-      ) {
-        const patchResult = dispatch(
-          api.util.updateQueryData(
-            "getUserCourseProgress",
-            { userId, courseId },
-            (draft) => {
-              Object.assign(draft, {
-                ...draft,
-                sections: progressData.sections,
-              });
-            },
-          ),
-        );
-        try {
-          await queryFulfilled;
-        } catch {
-          patchResult.undo();
-        }
-      },
     }),
   }),
 });
 
-export const {
-  useUpdateUserMutation,
-  useGetCoursesQuery,
-  useGetCourseQuery,
-  useCreateCourseMutation,
-  useUpdateCourseMutation,
-  useDeleteCourseMutation,
-  useGetTransactionsQuery,
-  useCreateStripePaymentIntentMutation,
-  useCreateTransactionMutation,
-  useGetUserEnrolledCoursesQuery,
-  useGetUserCourseProgressQuery,
-  useUpdateUserCourseProgressMutation,
-} = api;
+export const { useRegisterMutation, useLoginMutation, useLogoutMutation } = api;
