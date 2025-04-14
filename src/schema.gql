@@ -8,9 +8,56 @@ type User {
   email: String!
   password: String!
   access_token: String
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+}
+
+"""
+`Date` type as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
+"""
+scalar Timestamp
+
+type File {
+  id: ID!
+  name: String!
+  size: Float!
+  path: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+}
+
+type Folder {
+  id: ID!
+  parent: Folder
+  children: [Folder!]!
+  files: [File!]!
+  name: String!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
 }
 
 type Query {
   users: [User!]!
   user(id: ID!): User!
+  rootFolders: [Folder!]!
+  folder(id: String!): Folder!
+  filesInFolder(folderId: String!): [File!]!
 }
+
+type Mutation {
+  createFolder(input: CreateFolderInput!): Folder!
+  uploadPdf(input: UploadPdfInput!): File!
+}
+
+input CreateFolderInput {
+  parentId: ID
+  name: String!
+}
+
+input UploadPdfInput {
+  file: Upload!
+  folderId: String!
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload

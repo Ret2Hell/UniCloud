@@ -7,6 +7,8 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { Request, Response } from 'express';
+import { FoldersModule } from './folders/folders.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { Request, Response } from 'express';
     UsersModule,
     AuthModule,
     PrismaModule,
+    FoldersModule,
+    FilesModule,
   ],
 })
 export class AppModule {}
