@@ -17,6 +17,13 @@ declare global {
     description: string;
   }
 
+  interface NavItemProps {
+    children: React.ReactNode;
+    href: string;
+    name: string;
+    isCollapsed: boolean;
+  }
+
   interface User {
     id: string;
     username: string;

@@ -17,11 +17,7 @@ export const metadata: Metadata = {
     "A platform for university students to share and access PDF documents.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: LayoutProps) {
   return (
     <html lang="en">
       <body className={`${roboto.variable}`}>
