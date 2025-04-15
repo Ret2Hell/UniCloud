@@ -24,13 +24,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FolderPlus } from "lucide-react";
 
 interface FileActionsProps {
-  folderId?: string | null;
+  parentId?: string | null;
   onFolderCreated?: () => void;
   onFileUploaded?: () => void;
   className?: string;
 }
 
-export default function FileActions({ folderId, className }: FileActionsProps) {
+export default function FileActions({ parentId, className }: FileActionsProps) {
   const [newFolderOpen, setNewFolderOpen] = useState(false);
 
   const [createFolder, { isLoading }] = useCreateFolderMutation();
@@ -48,11 +48,11 @@ export default function FileActions({ folderId, className }: FileActionsProps) {
     try {
       const { name } = data;
       console.log("Creating folder with data:", data);
-      const response = await createFolder({
-        parentId: folderId || undefined,
+      await createFolder({
+        parentId: parentId || undefined,
         name,
       }).unwrap();
-      console.log("Folder created:", response);
+      methods.reset();
       setNewFolderOpen(false);
     } catch (error) {
       console.error("Failed to create folder:", error);

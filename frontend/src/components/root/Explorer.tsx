@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { File, Folder, FolderOpen, Search } from "lucide-react";
 import Link from "next/link";
@@ -44,19 +43,11 @@ interface ExplorerProps {
   isLoading?: boolean;
 }
 
-export default function Explorer({
-  id,
-  data,
-  isLoading = false,
-}: ExplorerProps) {
+export default function Explorer({ id, data }: ExplorerProps) {
   console.log(data);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-
-  if (isLoading) {
-    return <ExplorerSkeleton />;
-  }
 
   if (!data) {
     return (
@@ -120,7 +111,7 @@ export default function Explorer({
         </div>
 
         <div className="flex items-center gap-4">
-          <FileActions folderId={id} />
+          <FileActions parentId={id} />
 
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -205,33 +196,6 @@ export default function Explorer({
           )}
         </>
       )}
-    </div>
-  );
-}
-
-function ExplorerSkeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-9 w-64" />
-      </div>
-      <div className="space-y-2">
-        <Skeleton className="h-5 w-20" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full" />
-          ))}
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Skeleton className="h-5 w-20" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full" />
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

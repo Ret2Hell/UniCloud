@@ -1,6 +1,7 @@
 "use client";
 
 import Explorer from "@/components/root/Explorer";
+import ExplorerSkeleton from "@/components/root/ExplorerSkeleton";
 import { useGetFolderByIdQuery, useGetRootFoldersQuery } from "@/state/api";
 import { useSearchParams } from "next/navigation";
 import React from "react";
@@ -14,14 +15,15 @@ const HomePage = () => {
 
   const isLoading = folderByIdQuery.isLoading || rootFoldersQuery.isLoading;
 
-  let data = null;
-  if (!isLoading) {
-    data = id ? folderByIdQuery.data.folder : rootFoldersQuery.data.folders;
+  if (isLoading) {
+    return <ExplorerSkeleton />;
   }
+
+  const data = id ? folderByIdQuery.data.folder : rootFoldersQuery.data.folders;
 
   return (
     <main className="mx-4 flex-1 p-6 w-full relative">
-      <Explorer id={id} data={data} isLoading={isLoading} />
+      <Explorer id={id} data={data} />
     </main>
   );
 };
