@@ -76,6 +76,7 @@ export class AuthService {
     });
 
     return {
+      id: user.id,
       access_token,
     };
   }

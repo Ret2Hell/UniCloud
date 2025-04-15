@@ -7,7 +7,7 @@ const FormNavigation = ({
   secondaryAction,
   isLoading,
 }: FormNavigationProps) => (
-  <div className="flex items-center justify-between">
+  <div className="mt-8 flex items-center justify-between">
     <Link href={secondaryAction.href}>
       <Button variant="link" className="text-[#797be9] hover:text-[#696cff]">
         {secondaryAction.label}

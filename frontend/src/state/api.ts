@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { BaseQueryApi, FetchArgs } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
+import { clearId } from ".";
 
 const customBaseQuery = async (
   args: string | FetchArgs,
@@ -10,18 +11,28 @@ const customBaseQuery = async (
 ) => {
   const baseQuery = fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+    credentials: "include",
   });
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = await baseQuery(args, api, extraOptions);
 
     if (result.error) {
-      const errorData = result.error.data;
-      const errorMessage =
-        errorData?.message ||
-        result.error.status.toString() ||
-        "An error occurred";
-      toast.error(`Error: ${errorMessage}`);
+      if (result.error.status === 401) {
+        document.cookie = "access_token=; Max-Age=0; path=/";
+        toast.error("Session expired. Please log in again.");
+        clearId();
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        window.location.href = "/login";
+      } else {
+        const errorData = result.error.data;
+        const errorMessage =
+          errorData?.message ||
+          result.error.status.toString() ||
+          "An error occurred";
+        toast.error(`Error: ${errorMessage}`);
+      }
     }
 
     const isMutationRequest =
@@ -51,13 +62,20 @@ const customBaseQuery = async (
 export const api = createApi({
   baseQuery: customBaseQuery,
   reducerPath: "api",
-  tagTypes: [],
+  tagTypes: ["User"],
   endpoints: (builder) => ({
     /*
     =================
     USER ENDPOINTS
     =================
     */
+    getUser: builder.query({
+      query: () => ({
+        url: "/api/auth/user",
+        method: "GET",
+      }),
+      providesTags: ["User"],
+    }),
     register: builder.mutation({
       query: (registerData) => ({
         url: "/api/auth/sign-up",
@@ -71,14 +89,21 @@ export const api = createApi({
         method: "POST",
         body: loginData,
       }),
+      invalidatesTags: ["User"],
     }),
     logout: builder.mutation({
       query: () => ({
         url: "/api/auth/logout",
         method: "POST",
       }),
+      invalidatesTags: ["User"],
     }),
   }),
 });
 
-export const { useRegisterMutation, useLoginMutation, useLogoutMutation } = api;
+export const {
+  useGetUserQuery,
+  useRegisterMutation,
+  useLoginMutation,
+  useLogoutMutation,
+} = api;

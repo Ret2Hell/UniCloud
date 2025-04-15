@@ -1,19 +1,26 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 interface InitialStateTypes {
-  id: string;
+  id: string | null;
 }
 
 const initialState: InitialStateTypes = {
-  id: "",
+  id: null,
 };
 
 export const globalSlice = createSlice({
   name: "global",
   initialState,
-  reducers: {},
+  reducers: {
+    setId: (state, action) => {
+      state.id = action.payload;
+    },
+    clearId: (state) => {
+      state.id = null;
+    },
+  },
 });
 
-export const {} = globalSlice.actions;
+export const { setId, clearId } = globalSlice.actions;
 
 export default globalSlice.reducer;

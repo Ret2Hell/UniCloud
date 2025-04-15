@@ -5,6 +5,7 @@ import {
   HttpStatus,
   HttpException,
   HttpCode,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserInput } from 'src/users/dto/create-user.input';
@@ -23,6 +24,7 @@ import { ConfigService } from '@nestjs/config';
 import { ResponseUtil } from 'src/utils/reponse.util';
 import { Cookie } from './decorators/cookie.decorator';
 import { GetUser } from './decorators/get-user.decorator';
+import { User } from '@prisma/client';
 
 interface CustomError {
   message: string;
@@ -84,9 +86,15 @@ export class AuthController {
   })
   async signIn(@Body() signInDto: SignInDto, @Cookie() response: Response) {
     try {
-      const tokens = await this.authService.signIn(signInDto);
-      this.setAuthCookies(response, tokens);
-      return ResponseUtil.success('Sign in successful', {}, HttpStatus.OK);
+      const { id, access_token } = await this.authService.signIn(signInDto);
+      this.setAuthCookies(response, { access_token });
+      return ResponseUtil.success(
+        'Sign in successful',
+        {
+          id,
+        },
+        HttpStatus.OK,
+      );
     } catch (error) {
       const typedError = error as CustomError;
       throw new HttpException(
@@ -118,6 +126,30 @@ export class AuthController {
       throw new HttpException(
         ResponseUtil.error(
           typedError.message || 'Logout failed',
+          typedError.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+        typedError.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('user')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get user information' })
+  @ApiCookieAuth('access_token')
+  @ApiResponse({ status: 200, description: 'User information retrieved' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or expired token',
+  })
+  getUser(@GetUser() user: User) {
+    try {
+      return ResponseUtil.success('User information retrieved', user);
+    } catch (error) {
+      const typedError = error as CustomError;
+      throw new HttpException(
+        ResponseUtil.error(
+          typedError.message || 'Failed to retrieve user information',
           typedError.status || HttpStatus.INTERNAL_SERVER_ERROR,
         ),
         typedError.status || HttpStatus.INTERNAL_SERVER_ERROR,

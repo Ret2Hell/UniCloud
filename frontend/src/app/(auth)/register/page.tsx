@@ -12,9 +12,11 @@ import {
   userRegistrationSchema,
 } from "@/lib/schemas";
 import { useRegisterMutation } from "@/state/api";
+import { useRouter } from "next/navigation";
 
 const RegisterPage = () => {
   const [register, { isLoading }] = useRegisterMutation();
+  const router = useRouter();
 
   const methods = useForm<UserRegistrationFormData>({
     resolver: zodResolver(userRegistrationSchema),
@@ -37,6 +39,7 @@ const RegisterPage = () => {
         password,
       }).unwrap();
       console.log("Registration response:", response);
+      router.push("/login");
     } catch (error) {
       console.error("Failed to register:", error);
     }

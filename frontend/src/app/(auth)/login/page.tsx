@@ -10,16 +10,19 @@ import React from "react";
 import { UserLoginFormData, userLoginSchema } from "@/lib/schemas";
 import { useLoginMutation } from "@/state/api";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { setId } from "@/state";
 
 const LoginPage = () => {
   const [login, { isLoading }] = useLoginMutation();
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const methods = useForm<UserLoginFormData>({
     resolver: zodResolver(userLoginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: "tayeb1920@gmail.com",
+      password: "Aa123456@",
     },
   });
 
@@ -28,7 +31,7 @@ const LoginPage = () => {
   ) => {
     try {
       const response = await login(data).unwrap();
-      console.log("Login response:", response);
+      dispatch(setId(response.id));
       router.push("/home");
     } catch (error) {
       console.error("Failed to login:", error);
@@ -62,7 +65,7 @@ const LoginPage = () => {
           />
 
           <FormNavigation
-            mainActionLabel="Sign up"
+            mainActionLabel="Sign in"
             secondaryAction={{
               label: "New on our platform?",
               href: "/register",

@@ -9,7 +9,7 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { Observable } from 'rxjs';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
 import { User } from '@prisma/client';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -18,24 +18,19 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   getRequest(context: ExecutionContext): Request {
-    // Determine the context type
     const contextType = context.getType<'http' | 'graphql'>();
 
     if (contextType === 'http') {
-      // REST context
       return context.switchToHttp().getRequest<Request>();
     }
 
-    // GraphQL context
     const ctx = GqlExecutionContext.create(context);
-    const graphqlContext = ctx.getContext<{ req: Request }>();
-    return graphqlContext.req;
+    return ctx.getContext<{ req: Request }>().req;
   }
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    // Check for public routes first
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -45,17 +40,25 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       return true;
     }
 
-    // Proceed with standard authentication
     return super.canActivate(context);
   }
 
-  handleRequest<TUser = User>(err: unknown, user: TUser): TUser {
+  handleRequest<TUser = User>(
+    err: unknown,
+    user: TUser,
+    info: any,
+    context: ExecutionContext,
+  ): TUser {
     if (err || !user) {
       if (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'An unknown error occurred';
         console.error('JWT Authentication Error:', errorMessage);
       }
+
+      // Clear authentication cookie
+      this.clearAuthCookie(context);
+
       throw new UnauthorizedException(
         err instanceof Error
           ? err.message
@@ -63,5 +66,32 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       );
     }
     return user;
+  }
+
+  private clearAuthCookie(context: ExecutionContext) {
+    try {
+      const contextType = context.getType<'http' | 'graphql'>();
+      let response: Response;
+
+      if (contextType === 'http') {
+        response = context.switchToHttp().getResponse<Response>();
+      } else {
+        const gqlContext = GqlExecutionContext.create(context).getContext<{
+          res: Response;
+        }>();
+        response = gqlContext.res;
+      }
+
+      if (response && typeof response.clearCookie === 'function') {
+        response.clearCookie('access_token', {
+          // Replace with your cookie name
+          httpOnly: true,
+          path: '/',
+          // Add other cookie options if needed (e.g., secure, sameSite, domain)
+        });
+      }
+    } catch (error) {
+      console.error('Error clearing authentication cookie:', error);
+    }
   }
 }

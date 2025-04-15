@@ -3,17 +3,30 @@
 import Image from "next/image";
 import React, { useState } from "react";
 import NavItem from "./NavItem";
-import { ChevronRight, ChevronLeft, Folder, Heart } from "lucide-react";
+import { ChevronRight, ChevronLeft, Folder, Heart, LogOut } from "lucide-react";
+import { useLogoutMutation } from "@/state/api";
+import { useRouter } from "next/navigation";
 
 const AppSidebar = () => {
+  const [logout] = useLogoutMutation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const router = useRouter();
 
   function toggleSidebar() {
     setIsCollapsed((prev) => !prev);
   }
+
+  const handleLogout = async () => {
+    try {
+      await logout({}).unwrap();
+      router.push("/login");
+    } catch (error) {
+      console.error("Failed to logout:", error);
+    }
+  };
   const sidebarClass =
     (isCollapsed ? "w-20" : "w-64") +
-    " bg-white p-4 min-h-[calc(100vh-4rem)] relative";
+    " bg-white p-4 min-h-[calc(100vh-4rem)] relative flex flex-col";
 
   return (
     <aside className={sidebarClass}>
@@ -31,7 +44,7 @@ const AppSidebar = () => {
           </button>
         </div>
       </div>
-      <nav className="mt-4 flex flex-col gap-1">
+      <nav className="mt-8 flex flex-col gap-1">
         <NavItem name="Explorer" href="/home" isCollapsed={isCollapsed}>
           <Folder />
         </NavItem>
@@ -43,6 +56,11 @@ const AppSidebar = () => {
           <Heart />
         </NavItem>
       </nav>
+      <div className="mt-auto" onClick={handleLogout}>
+        <NavItem name="Logout" href="#" isCollapsed={isCollapsed}>
+          <LogOut />
+        </NavItem>
+      </div>
     </aside>
   );
 };
