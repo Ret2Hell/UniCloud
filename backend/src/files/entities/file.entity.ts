@@ -11,6 +11,10 @@ export class File {
 
   path: string;
 
+  ownerId: string;
+
+  parentId?: string | null;
+
   createdAt: Date;
 
   updatedAt: Date;

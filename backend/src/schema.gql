@@ -22,16 +22,19 @@ type File {
   name: String!
   size: Float!
   path: String!
+  ownerId: String!
+  parentId: String
   createdAt: Timestamp!
   updatedAt: Timestamp!
 }
 
 type Folder {
   id: ID!
-  parent: Folder
   children: [Folder!]!
   files: [File!]!
   name: String!
+  parentId: String
+  ownerId: String!
   createdAt: Timestamp!
   updatedAt: Timestamp!
 }

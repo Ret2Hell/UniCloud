@@ -23,7 +23,7 @@ interface FileItem {
 interface FolderItem {
   id: string;
   name: string;
-  parent?: FolderItem | null;
+  parentId?: string | null;
   files?: FileItem[];
   folders?: FolderItem[];
   createdAt: Date;
@@ -36,7 +36,7 @@ interface ExplorerProps {
     | {
         id: string;
         name: string;
-        parent?: FolderItem | null;
+        parentId?: string | null;
         files?: FileItem[];
         children?: FolderItem[];
       }
@@ -85,8 +85,8 @@ export default function Explorer({
   };
 
   const handleBackClick = () => {
-    if (!Array.isArray(data) && data.parent) {
-      router.push(data.parent.id ? `?id=${data.parent.id}` : "/");
+    if (!Array.isArray(data) && data) {
+      router.push(data.parentId ? `?id=${data.parentId}` : "/");
     } else {
       router.push("/");
     }

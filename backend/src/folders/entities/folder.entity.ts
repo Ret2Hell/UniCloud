@@ -8,8 +8,9 @@ export class Folder {
 
   name: string;
 
-  @Field(() => Folder, { nullable: true })
-  parent?: Folder;
+  parentId: string | null;
+
+  ownerId: string;
 
   @Field(() => [Folder])
   children: Folder[];

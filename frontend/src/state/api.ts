@@ -38,6 +38,17 @@ const customBaseQuery = async (
     const isMutationRequest =
       (args as FetchArgs).method && (args as FetchArgs).method !== "GET";
     if (isMutationRequest) {
+      const toastMeta = extraOptions?.meta?.toast;
+
+      if (toastMeta) {
+        if (result.error && toastMeta.showError !== false) {
+          toast.error(toastMeta.errorMessage || "Something went wrong");
+        }
+
+        if (!result.error && toastMeta.showSuccess !== false) {
+          toast.success(toastMeta.successMessage || "Success!");
+        }
+      }
       const successMessage = result.data?.message;
       if (successMessage) toast.success(successMessage);
     }
@@ -112,9 +123,7 @@ export const api = createApi({
             folders {
             id
             name
-            parent {
-              id
-            }
+            parentId
             createdAt
             updatedAt
             }
@@ -132,9 +141,7 @@ export const api = createApi({
             folder(id: "${id}") {
               id
               name
-              parent {
-                id
-              }      
+              parentId    
               children {
                 id
                 name
@@ -165,13 +172,23 @@ export const api = createApi({
           name: "${folderData.name}"
           })
           {
-            id
+            id,
             name
           }
         }`,
         },
       }),
       invalidatesTags: ["Folders"],
+      extraOptions: {
+        meta: {
+          toast: {
+            showSuccess: true,
+            showError: true,
+            successMessage: "Folder created successfully!",
+            errorMessage: "Failed to create folder!",
+          },
+        },
+      },
     }),
   }),
 });
