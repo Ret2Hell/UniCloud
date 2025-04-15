@@ -8,7 +8,7 @@ export const userRegistrationSchema = z
       .min(1, "Username is required")
       .regex(
         /^[a-zA-Z0-9_]+$/,
-        "Username can only contain letters, numbers, and underscores",
+        "Username can only contain letters, numbers, and underscores"
       )
       .max(20, "Username must be at most 20 characters long"),
     email: z.string().email("Invalid email address"),
@@ -20,7 +20,7 @@ export const userRegistrationSchema = z
       .regex(/[0-9]/, "Password must contain at least one number")
       .regex(
         /[@$!%*?&]/,
-        "Password must contain at least one special character",
+        "Password must contain at least one special character"
       ),
     confirmPassword: z.string().min(1, "Confirm password is required"),
   })
@@ -40,3 +40,13 @@ export const userLoginSchema = z
     message: "Password is required",
   });
 export type UserLoginFormData = z.infer<typeof userLoginSchema>;
+
+// Folder create schema (parentId and name)
+export const folderCreateSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Folder name is required")
+    .max(50, "Folder name must be at most 50 characters long"),
+});
+
+export type FolderCreateFormData = z.infer<typeof folderCreateSchema>;

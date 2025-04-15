@@ -22,6 +22,7 @@ export class FoldersService {
       include: {
         children: true,
         files: true,
+        parent: true,
       },
     });
 

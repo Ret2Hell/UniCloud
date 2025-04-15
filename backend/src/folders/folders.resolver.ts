@@ -10,7 +10,7 @@ export class FoldersResolver {
   constructor(private readonly foldersService: FoldersService) {}
 
   @Query(() => [Folder])
-  async rootFolders(@GetUser() user: User) {
+  async folders(@GetUser() user: User) {
     return this.foldersService.findRootFolders(user.id);
   }
 

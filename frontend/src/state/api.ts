@@ -62,7 +62,7 @@ const customBaseQuery = async (
 export const api = createApi({
   baseQuery: customBaseQuery,
   reducerPath: "api",
-  tagTypes: ["User"],
+  tagTypes: ["User", "Folders"],
   endpoints: (builder) => ({
     /*
     =================
@@ -98,6 +98,81 @@ export const api = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    /*
+    =================
+    FOLDERS ENDPOINTS GRAPHQL
+    =================
+    */
+    getRootFolders: builder.query({
+      query: () => ({
+        url: "/graphql",
+        method: "POST",
+        body: {
+          query: `query {
+            folders {
+            id
+            name
+            parent {
+              id
+            }
+            createdAt
+            updatedAt
+            }
+          }`,
+        },
+      }),
+      providesTags: ["Folders"],
+    }),
+    getFolderById: builder.query({
+      query: (id) => ({
+        url: "/graphql",
+        method: "POST",
+        body: {
+          query: `query {
+            folder(id: "${id}") {
+              id
+              name
+              parent {
+                id
+              }      
+              children {
+                id
+                name
+                createdAt
+                updatedAt
+              }
+              files {
+                id
+                name
+                size
+                path
+                createdAt
+                updatedAt
+              }
+            }
+          }`,
+        },
+      }),
+    }),
+    createFolder: builder.mutation({
+      query: (folderData) => ({
+        url: "/graphql",
+        method: "POST",
+        body: {
+          query: `mutation {
+          createFolder (input: {
+          ${folderData.parentId ? `parentId: "${folderData.parentId}"` : ""}
+          name: "${folderData.name}"
+          })
+          {
+            id
+            name
+          }
+        }`,
+        },
+      }),
+      invalidatesTags: ["Folders"],
+    }),
   }),
 });
 
@@ -106,4 +181,7 @@ export const {
   useRegisterMutation,
   useLoginMutation,
   useLogoutMutation,
+  useGetRootFoldersQuery,
+  useGetFolderByIdQuery,
+  useCreateFolderMutation,
 } = api;

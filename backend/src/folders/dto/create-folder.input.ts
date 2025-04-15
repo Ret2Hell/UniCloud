@@ -1,12 +1,12 @@
 import { Field, ID, InputType } from '@nestjs/graphql';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 @InputType()
 export class CreateFolderInput {
   @IsString()
   name: string;
 
-  @IsString()
+  @IsOptional()
   @Field(() => ID, { nullable: true })
-  parentId?: string;
+  parentId?: string | null;
 }

@@ -39,7 +39,7 @@ type Folder {
 type Query {
   users: [User!]!
   user(id: ID!): User!
-  rootFolders: [Folder!]!
+  folders: [Folder!]!
   folder(id: String!): Folder!
   filesInFolder(folderId: String!): [File!]!
 }
