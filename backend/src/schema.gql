@@ -50,6 +50,7 @@ type Query {
 type Mutation {
   createFolder(input: CreateFolderInput!): Folder!
   uploadPdf(folderId: String!, file: Upload!): File!
+  deleteFile(fileId: String!): Boolean!
 }
 
 input CreateFolderInput {

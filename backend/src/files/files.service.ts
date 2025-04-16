@@ -34,4 +34,18 @@ export class FilesService {
       where: { id },
     });
   }
+
+  async delete(id: string): Promise<boolean> {
+    const file = await this.findOne(id);
+
+    if (!file) {
+      throw new Error(`File with ID ${id} not found`);
+    }
+
+    await this.prisma.file.delete({
+      where: { id },
+    });
+
+    return true;
+  }
 }

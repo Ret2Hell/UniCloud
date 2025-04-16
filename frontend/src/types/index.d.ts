@@ -49,7 +49,6 @@ declare global {
     path: string;
     createdAt: Date;
     updatedAt: Date;
-    url?: string;
   }
 
   interface FolderItem {
@@ -67,6 +66,7 @@ declare global {
   }
 
   interface FileCardProps {
+    folderId?: string | null;
     file: FileItem;
   }
 

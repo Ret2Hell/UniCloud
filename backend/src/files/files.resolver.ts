@@ -47,4 +47,25 @@ export class FilesResolver {
   async filesInFolder(@Args('folderId') folderId: string) {
     return this.filesService.findByFolder(folderId);
   }
+
+  @Mutation(() => Boolean)
+  async deleteFile(
+    @Args('fileId') fileId: string,
+    @GetUser('sub') userId: string,
+  ) {
+    const file = await this.filesService.findOne(fileId);
+
+    if (!file) {
+      throw new BadRequestException('File not found');
+    }
+
+    if (file.ownerId !== userId) {
+      throw new BadRequestException(
+        'You are not authorized to delete this file',
+      );
+    }
+
+    fs.unlinkSync(file.path);
+    return this.filesService.delete(fileId);
+  }
 }

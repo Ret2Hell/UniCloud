@@ -16,13 +16,14 @@ import {
 import CardInfo from "./CardInfo";
 import ConfirmationDialog from "./ConfirmationDialog";
 import AiChat from "./AiChat";
-import { useDownloadPdfMutation } from "@/state/api";
+import { useDeleteFileMutation, useDownloadPdfMutation } from "@/state/api";
 
-const FileCard = ({ file }: FileCardProps) => {
+const FileCard = ({ folderId, file }: FileCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
 
   const [downloadPdf] = useDownloadPdfMutation();
+  const [deleteFile] = useDeleteFileMutation();
 
   const handleDownload = async () => {
     try {
@@ -45,8 +46,17 @@ const FileCard = ({ file }: FileCardProps) => {
     }
   };
   const handleDelete = () => {
-    // Delete logic here
-    setIsDeleteDialogOpen(false);
+    deleteFile({ fileId: file.id, folderId })
+      .unwrap()
+      .then(() => {
+        console.log("File deleted successfully");
+      })
+      .catch((err) => {
+        console.error("Delete failed", err);
+      })
+      .finally(() => {
+        setIsDeleteDialogOpen(false);
+      });
   };
 
   return (

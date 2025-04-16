@@ -274,6 +274,41 @@ export const api = createApi({
         cache: "no-cache",
       }),
     }),
+    deleteFile: builder.mutation<
+      boolean,
+      { fileId: string; folderId?: string | null }
+    >({
+      query: ({ fileId }) => ({
+        url: "/graphql",
+        method: "POST",
+        body: {
+          query: `
+            mutation DeleteFile($fileId: String!) {
+              deleteFile(fileId: $fileId)
+            }
+          `,
+          variables: {
+            fileId,
+          },
+        },
+      }),
+      invalidatesTags: (result, error, { folderId }) => {
+        if (folderId) {
+          return [{ type: "File", id: folderId }];
+        }
+        return [];
+      },
+      extraOptions: {
+        meta: {
+          toast: {
+            showSuccess: true,
+            showError: true,
+            successMessage: "File deleted successfully!",
+            errorMessage: "Failed to delete file!",
+          },
+        },
+      },
+    }),
   }),
 });
 
@@ -287,4 +322,5 @@ export const {
   useCreateFolderMutation,
   useUploadPdfMutation,
   useDownloadPdfMutation,
+  useDeleteFileMutation,
 } = api;

@@ -110,7 +110,7 @@ export default function Explorer({ id, data }: ExplorerProps) {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
                 {filteredFiles.map((file) => (
-                  <FileCard key={file.id} file={file} />
+                  <FileCard key={file.id} file={file} folderId={id} />
                 ))}
               </div>
             </section>
