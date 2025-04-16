@@ -16,11 +16,34 @@ import {
 import CardInfo from "./CardInfo";
 import ConfirmationDialog from "./ConfirmationDialog";
 import AiChat from "./AiChat";
+import { useDownloadPdfMutation } from "@/state/api";
 
 const FileCard = ({ file }: FileCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
 
+  const [downloadPdf] = useDownloadPdfMutation();
+
+  const handleDownload = async () => {
+    try {
+      const result = await downloadPdf(file.id).unwrap();
+
+      if (!result || !(result instanceof Blob)) {
+        throw new Error("Invalid blob received");
+      }
+
+      const url = window.URL.createObjectURL(result);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", file.name);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download failed", err);
+    }
+  };
   const handleDelete = () => {
     // Delete logic here
     setIsDeleteDialogOpen(false);
@@ -40,7 +63,10 @@ const FileCard = ({ file }: FileCardProps) => {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem className="cursor-pointer text-green-500 focus:text-green-500">
+              <DropdownMenuItem
+                className="cursor-pointer text-green-500 focus:text-green-500"
+                onClick={handleDownload}
+              >
                 <Download className="mr-2 h-4 w-4 text-green-500" />
                 <span>Download</span>
               </DropdownMenuItem>

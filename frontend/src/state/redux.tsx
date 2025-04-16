@@ -34,6 +34,7 @@ export const makeStore = () => {
           ignoredPaths: [
             "meta.baseQueryMeta.request",
             "meta.baseQueryMeta.response",
+            "api.mutations",
           ],
         },
       }).concat(api.middleware),

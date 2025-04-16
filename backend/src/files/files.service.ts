@@ -28,4 +28,10 @@ export class FilesService {
       where: { folderId },
     });
   }
+
+  async findOne(id: string) {
+    return await this.prisma.file.findUnique({
+      where: { id },
+    });
+  }
 }

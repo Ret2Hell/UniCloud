@@ -263,6 +263,17 @@ export const api = createApi({
         },
       },
     }),
+    downloadPdf: builder.mutation({
+      query: (id) => ({
+        url: `api/files/download/${id}`,
+        responseHandler: async (response) => {
+          const blob = await response.blob();
+          return { data: blob };
+        },
+        method: "POST",
+        cache: "no-cache",
+      }),
+    }),
   }),
 });
 
@@ -275,4 +286,5 @@ export const {
   useGetFolderByIdQuery,
   useCreateFolderMutation,
   useUploadPdfMutation,
+  useDownloadPdfMutation,
 } = api;

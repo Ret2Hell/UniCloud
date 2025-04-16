@@ -87,7 +87,7 @@ const AiChat = ({ isOpen, onOpenChange, fileName }: AiChatProps) => {
                     key={index}
                     className={`p-3 rounded-lg ${
                       message.role === "user"
-                        ? "bg-primary text-primary-foreground ml-8"
+                        ? "bg-[#696cff] text-white ml-8"
                         : "bg-muted mr-8"
                     }`}
                   >
