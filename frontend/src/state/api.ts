@@ -3,6 +3,14 @@ import { BaseQueryApi, FetchArgs } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { clearId } from ".";
 
+interface Folder {
+  id: string;
+  name: string;
+  parentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const customBaseQuery = async (
   args: string | FetchArgs,
   api: BaseQueryApi,
@@ -72,7 +80,7 @@ const customBaseQuery = async (
 export const api = createApi({
   baseQuery: customBaseQuery,
   reducerPath: "api",
-  tagTypes: ["User", "Folders", "Files"],
+  tagTypes: ["User", "Folder", "File"],
   endpoints: (builder) => ({
     /*
     =================
@@ -129,7 +137,16 @@ export const api = createApi({
           }`,
         },
       }),
-      providesTags: ["Folders"],
+      providesTags: (result) =>
+        result?.data?.folders
+          ? [
+              ...result.data.folders.map((folder: Folder) => ({
+                type: "Folder" as const,
+                id: folder.id,
+              })),
+              { type: "Folder", id: "LIST" },
+            ]
+          : [{ type: "Folder", id: "LIST" }],
     }),
     getFolderById: builder.query({
       query: (id) => ({
@@ -159,7 +176,11 @@ export const api = createApi({
           }`,
         },
       }),
-      providesTags: ["Folders", "Files"],
+      providesTags: (result, error, id) => [
+        { type: "Folder", id },
+        { type: "File", id },
+        { type: "Folder", id: "LIST" },
+      ],
     }),
     createFolder: builder.mutation({
       query: (folderData) => ({
@@ -178,7 +199,7 @@ export const api = createApi({
         }`,
         },
       }),
-      invalidatesTags: ["Folders"],
+      invalidatesTags: [{ type: "Folder", id: "LIST" }],
       extraOptions: {
         meta: {
           toast: {
@@ -225,7 +246,12 @@ export const api = createApi({
           },
         };
       },
-      invalidatesTags: ["Files"],
+      invalidatesTags: (result, error, { folderId }) => {
+        if (folderId) {
+          return [{ type: "Folder", id: folderId }];
+        }
+        return [];
+      },
       extraOptions: {
         meta: {
           toast: {
