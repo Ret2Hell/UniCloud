@@ -27,11 +27,11 @@ import { Edit, X, Plus } from "lucide-react";
 import { registerPlugin } from "filepond";
 import { FilePond } from "react-filepond";
 import "filepond/dist/filepond.min.css";
-import FilePondPluginImagePreview from "filepond-plugin-image-preview";
-import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
+import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
+
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 
-registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
+registerPlugin(FilePondPluginFileValidateType);
 
 interface FormFieldProps {
   name: string;
@@ -65,7 +65,6 @@ export const CustomFormField: React.FC<FormFieldProps> = ({
   type = "text",
   placeholder,
   options,
-  accept,
   className,
   inputClassName,
   labelClassName,
@@ -129,9 +128,6 @@ export const CustomFormField: React.FC<FormFieldProps> = ({
           </div>
         );
       case "file":
-        const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg"];
-        const acceptedFileTypes = accept ? [accept] : ACCEPTED_VIDEO_TYPES;
-
         return (
           <FilePond
             className={`${inputClassName}`}
@@ -144,8 +140,9 @@ export const CustomFormField: React.FC<FormFieldProps> = ({
                   : fileItems[0]?.file
               );
             }}
-            acceptedFileTypes={acceptedFileTypes}
+            acceptedFileTypes={["application/pdf"]}
             labelIdle={`Drag & Drop your files or <span class="filepond--label-action">Browse</span>`}
+            labelFileTypeNotAllowed="Only PDF files are allowed."
             credits={false}
           />
         );

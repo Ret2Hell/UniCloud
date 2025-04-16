@@ -1,19 +1,23 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { FilesService } from './files.service';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
-import { User } from '@prisma/client';
 import { File } from './entities/file.entity';
-import { UploadPdfInput } from './dto/upload-pdf.input';
 import { BadRequestException } from '@nestjs/common';
 import * as fs from 'fs';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
 
 @Resolver(() => File)
 export class FilesResolver {
   constructor(private readonly filesService: FilesService) {}
 
   @Mutation(() => File)
-  async uploadPdf(@Args('input') input: UploadPdfInput, @GetUser() user: User) {
-    const { createReadStream, filename, mimetype } = await input.file;
+  async uploadPdf(
+    @Args({ name: 'folderId', type: () => String }) folderId: string,
+    @Args({ name: 'file', type: () => GraphQLUpload }) file: FileUpload,
+    @GetUser('sub') id: string,
+  ) {
+    const { createReadStream, filename, mimetype } = file;
 
     if (mimetype !== 'application/pdf') {
       throw new BadRequestException('Only PDF files are allowed');
@@ -22,7 +26,6 @@ export class FilesResolver {
     const uniqueName = `${Date.now()}-${filename}`;
     const storagePath = `uploads/${uniqueName}`;
 
-    // Save locally
     const stream = createReadStream();
     const writeStream = fs.createWriteStream(storagePath);
 
@@ -32,12 +35,11 @@ export class FilesResolver {
       stream.on('error', reject);
     });
 
-    // Save metadata
-    return this.filesService.create(user.id, {
+    return this.filesService.create(id, {
       name: filename,
       size: fs.statSync(storagePath).size,
       path: storagePath,
-      folderId: input.folderId,
+      folderId,
     });
   }
 

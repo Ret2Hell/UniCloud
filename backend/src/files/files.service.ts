@@ -7,12 +7,20 @@ export class FilesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, input: CreateFileInput) {
-    return await this.prisma.file.create({
+    const newFile = await this.prisma.folder.update({
+      where: { id: input.folderId },
       data: {
-        ...input,
-        ownerId: userId,
+        files: {
+          create: {
+            name: input.name,
+            size: input.size,
+            path: input.path,
+            ownerId: userId,
+          },
+        },
       },
     });
+    return newFile;
   }
 
   async findByFolder(folderId: string) {

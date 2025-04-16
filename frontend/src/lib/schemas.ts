@@ -50,3 +50,10 @@ export const folderCreateSchema = z.object({
 });
 
 export type FolderCreateFormData = z.infer<typeof folderCreateSchema>;
+
+// File upload schema (file and parentId)
+export const fileUploadSchema = z.object({
+  file: z.any(),
+});
+
+export type FileUploadFormData = z.infer<typeof fileUploadSchema>;

@@ -13,15 +13,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-// import { FolderPlus, Upload, X } from "lucide-react";
+import { FolderPlus, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CustomFormField } from "../CustomFormField";
 import { Form } from "../ui/form";
-import { useCreateFolderMutation } from "@/state/api";
-import { FolderCreateFormData, folderCreateSchema } from "@/lib/schemas";
+import { useCreateFolderMutation, useUploadPdfMutation } from "@/state/api";
+import {
+  FileUploadFormData,
+  fileUploadSchema,
+  FolderCreateFormData,
+  folderCreateSchema,
+} from "@/lib/schemas";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FolderPlus } from "lucide-react";
 
 interface FileActionsProps {
   parentId?: string | null;
@@ -32,16 +36,15 @@ interface FileActionsProps {
 
 export default function FileActions({ parentId, className }: FileActionsProps) {
   const [newFolderOpen, setNewFolderOpen] = useState(false);
+  const [uploadFileOpen, setUploadFileOpen] = useState(false);
 
   const [createFolder, { isLoading }] = useCreateFolderMutation();
-
-  const methods = useForm<FolderCreateFormData>({
+  const folderMethods = useForm<FolderCreateFormData>({
     resolver: zodResolver(folderCreateSchema),
     defaultValues: {
       name: "",
     },
   });
-
   const onSubmit: SubmitHandler<FolderCreateFormData> = async (
     data: FolderCreateFormData
   ) => {
@@ -52,10 +55,37 @@ export default function FileActions({ parentId, className }: FileActionsProps) {
         parentId: parentId || undefined,
         name,
       }).unwrap();
-      methods.reset();
+      folderMethods.reset();
       setNewFolderOpen(false);
     } catch (error) {
       console.error("Failed to create folder:", error);
+    }
+  };
+
+  const [uploadPdf, { isLoading: isUploading }] = useUploadPdfMutation();
+  const fileMethods = useForm<FileUploadFormData>({
+    resolver: zodResolver(fileUploadSchema),
+    defaultValues: {
+      file: undefined,
+    },
+  });
+  const onUpload: SubmitHandler<FileUploadFormData> = async (
+    data: FileUploadFormData
+  ) => {
+    try {
+      const response = await uploadPdf({
+        file: data.file,
+        folderId: parentId,
+      }).unwrap();
+      console.log("File uploaded successfully:", response);
+      fileMethods.reset();
+      setUploadFileOpen(false);
+    } catch (error) {
+      console.error("Failed to upload file:", error);
+      fileMethods.setError("file", {
+        type: "manual",
+        message: "Failed to upload file. Please try again.",
+      });
     }
   };
 
@@ -76,8 +106,8 @@ export default function FileActions({ parentId, className }: FileActionsProps) {
               Enter a name for your new folder.
             </DialogDescription>
           </DialogHeader>
-          <Form {...methods}>
-            <form onSubmit={methods.handleSubmit(onSubmit)} noValidate>
+          <Form {...folderMethods}>
+            <form onSubmit={folderMethods.handleSubmit(onSubmit)} noValidate>
               <div className="py-4">
                 <CustomFormField
                   name="name"
@@ -104,7 +134,7 @@ export default function FileActions({ parentId, className }: FileActionsProps) {
       </Dialog>
 
       {/* Upload File Dialog */}
-      {/* <Dialog open={uploadFileOpen} onOpenChange={setUploadFileOpen}>
+      <Dialog open={uploadFileOpen} onOpenChange={setUploadFileOpen}>
         <DialogTrigger asChild>
           <Button variant="default" size="sm">
             <Upload className="h-4 w-4 mr-2" />
@@ -112,99 +142,49 @@ export default function FileActions({ parentId, className }: FileActionsProps) {
           </Button>
         </DialogTrigger>
         <DialogContent>
-          <form onSubmit={handleFileUpload}>
-            <DialogHeader>
-              <DialogTitle>Upload PDF File</DialogTitle>
-              <DialogDescription>
-                Select a PDF file to upload to{" "}
-                {folderId ? "this folder" : "root"}.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-              <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg p-6 text-center">
-                {selectedFile ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-sm font-medium truncate max-w-[200px]">
-                        {selectedFile.name}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedFile(null)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </span>
-                  </div>
-                ) : (
-                  <>
-                    <Label
-                      htmlFor="fileUpload"
-                      className="flex flex-col items-center gap-2 cursor-pointer"
-                    >
-                      <Upload className="h-8 w-8 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        Click to select a PDF file
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        PDF files only, max 10MB
-                      </span>
-                    </Label>
-                    <Input
-                      id="fileUpload"
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setSelectedFile(file);
-                        }
-                      }}
-                      className="hidden"
-                    />
-                  </>
-                )}
-              </div>
+          <DialogHeader>
+            <DialogTitle>Upload PDF File</DialogTitle>
+            <DialogDescription>
+              Select a PDF file to upload to {parentId ? "this folder" : "root"}
+              .
+            </DialogDescription>
+          </DialogHeader>
 
-              {uploadProgress > 0 && (
-                <div className="w-full">
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-right mt-1 text-muted-foreground">
-                    {uploadProgress}%
-                  </p>
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setUploadFileOpen(false);
-                  setSelectedFile(null);
-                  setUploadProgress(0);
-                }}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={!selectedFile || isSubmitting}>
-                {isSubmitting ? "Uploading..." : "Upload File"}
-              </Button>
-            </DialogFooter>
-          </form>
+          <Form {...fileMethods}>
+            <form
+              onSubmit={fileMethods.handleSubmit(onUpload)}
+              encType="multipart/form-data"
+            >
+              <CustomFormField
+                name="file"
+                label="Select PDF File"
+                type="file"
+                placeholder="Choose a PDF file"
+              />
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isUploading}
+                  onClick={() => {
+                    setUploadFileOpen(false);
+                    fileMethods.reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isUploading || !fileMethods.watch("file")}
+                >
+                  {isUploading ? "Uploading..." : "Upload File"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
-      </Dialog> */}
+      </Dialog>
     </div>
   );
 }

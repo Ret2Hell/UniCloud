@@ -16,7 +16,6 @@ const customBaseQuery = async (
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = await baseQuery(args, api, extraOptions);
-
     if (result.error) {
       if (result.error.status === 401) {
         document.cookie = "access_token=; Max-Age=0; path=/";
@@ -73,7 +72,7 @@ const customBaseQuery = async (
 export const api = createApi({
   baseQuery: customBaseQuery,
   reducerPath: "api",
-  tagTypes: ["User", "Folders"],
+  tagTypes: ["User", "Folders", "Files"],
   endpoints: (builder) => ({
     /*
     =================
@@ -160,6 +159,7 @@ export const api = createApi({
           }`,
         },
       }),
+      providesTags: ["Folders", "Files"],
     }),
     createFolder: builder.mutation({
       query: (folderData) => ({
@@ -190,6 +190,53 @@ export const api = createApi({
         },
       },
     }),
+    uploadPdf: builder.mutation<
+      { id: string },
+      { file: File; folderId?: string | null }
+    >({
+      query: ({ file, folderId }) => {
+        const formData = new FormData();
+
+        formData.append(
+          "operations",
+          JSON.stringify({
+            query: `
+              mutation ($file: Upload!, $folderId: String!) {
+                uploadPdf(folderId: $folderId, file: $file) {
+                  id
+                }
+              }
+            `,
+            variables: {
+              file: null,
+              folderId,
+            },
+          })
+        );
+
+        formData.append("map", JSON.stringify({ "0": ["variables.file"] }));
+        formData.append("0", file);
+        return {
+          url: "/graphql",
+          method: "POST",
+          body: formData,
+          headers: {
+            "x-apollo-operation-name": "UploadFile",
+          },
+        };
+      },
+      invalidatesTags: ["Files"],
+      extraOptions: {
+        meta: {
+          toast: {
+            showSuccess: true,
+            showError: true,
+            successMessage: "File uploaded successfully!",
+            errorMessage: "Failed to upload file!",
+          },
+        },
+      },
+    }),
   }),
 });
 
@@ -201,4 +248,5 @@ export const {
   useGetRootFoldersQuery,
   useGetFolderByIdQuery,
   useCreateFolderMutation,
+  useUploadPdfMutation,
 } = api;

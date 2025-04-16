@@ -44,7 +44,6 @@ interface ExplorerProps {
 }
 
 export default function Explorer({ id, data }: ExplorerProps) {
-  console.log(data);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,7 +59,6 @@ export default function Explorer({ id, data }: ExplorerProps) {
 
   const currentFolder = Array.isArray(data) ? null : data;
   const folders = Array.isArray(data) ? data : currentFolder?.children || [];
-  console.log("Folders:", data);
   const files = Array.isArray(data) ? [] : currentFolder?.files || [];
 
   const filteredFolders = folders.filter((folder) =>
