@@ -96,6 +96,25 @@ declare global {
     onChange: (value: string) => void;
   }
 
+  interface AiChatProps {
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    fileName: string;
+  }
+
+  interface ConfirmationDialogProps {
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }
+
+  interface CardInfoProps {
+    name: string;
+    date: Date;
+  }
+
   interface User {
     id: string;
     username: string;
