@@ -69,7 +69,6 @@ export const CustomFormField: React.FC<FormFieldProps> = ({
   inputClassName,
   labelClassName,
   disabled = false,
-  multiple = false,
   isIcon = false,
   initialValue,
 }) => {
@@ -131,16 +130,18 @@ export const CustomFormField: React.FC<FormFieldProps> = ({
         return (
           <FilePond
             className={`${inputClassName}`}
-            files={field.value ? [field.value] : []}
-            allowMultiple={multiple}
+            files={
+              field.value
+                ? [{ source: field.value, options: { type: "local" } }]
+                : []
+            }
+            allowMultiple={false}
             onupdatefiles={(fileItems) => {
-              field.onChange(
-                multiple
-                  ? fileItems.map((fileItem) => fileItem.file)
-                  : fileItems[0]?.file
-              );
+              const file = fileItems[0]?.file ?? null;
+              field.onChange(file);
             }}
             acceptedFileTypes={["application/pdf"]}
+            allowFileTypeValidation={true}
             labelIdle={`Drag & Drop your files or <span class="filepond--label-action">Browse</span>`}
             labelFileTypeNotAllowed="Only PDF files are allowed."
             credits={false}

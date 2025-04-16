@@ -51,9 +51,18 @@ export const folderCreateSchema = z.object({
 
 export type FolderCreateFormData = z.infer<typeof folderCreateSchema>;
 
-// File upload schema (file and parentId)
 export const fileUploadSchema = z.object({
-  file: z.any(),
+  file: z
+    .instanceof(File)
+    .nullable()
+    .refine(
+      (file) =>
+        file === null ||
+        (file.type === "application/pdf" && file.size < 10 * 1024 * 1024),
+      {
+        message: "Only PDF files under 10 MB are allowed.",
+      }
+    ),
 });
 
 export type FileUploadFormData = z.infer<typeof fileUploadSchema>;

@@ -66,18 +66,18 @@ export default function FileActions({ parentId, className }: FileActionsProps) {
   const fileMethods = useForm<FileUploadFormData>({
     resolver: zodResolver(fileUploadSchema),
     defaultValues: {
-      file: undefined,
+      file: null,
     },
   });
   const onUpload: SubmitHandler<FileUploadFormData> = async (
     data: FileUploadFormData
   ) => {
     try {
-      const response = await uploadPdf({
-        file: data.file,
+      await uploadPdf({
+        file: data.file as File,
         folderId: parentId,
       }).unwrap();
-      console.log("File uploaded successfully:", response);
+
       fileMethods.reset();
       setUploadFileOpen(false);
     } catch (error) {
@@ -154,6 +154,7 @@ export default function FileActions({ parentId, className }: FileActionsProps) {
             <form
               onSubmit={fileMethods.handleSubmit(onUpload)}
               encType="multipart/form-data"
+              noValidate
             >
               <CustomFormField
                 name="file"
