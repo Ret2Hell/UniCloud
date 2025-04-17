@@ -40,6 +40,11 @@ type Folder {
   updatedAt: Timestamp!
 }
 
+type ChatMessage {
+  role: String!
+  content: String!
+}
+
 type Query {
   users: [User!]!
   user(id: ID!): User!
@@ -53,6 +58,7 @@ type Mutation {
   deleteFolder(folderId: String!): Boolean!
   uploadPdf(folderId: String!, file: Upload!): File!
   deleteFile(fileId: String!): Boolean!
+  sendMessage(content: String!, fileId: String!): ChatMessage!
 }
 
 input CreateFolderInput {

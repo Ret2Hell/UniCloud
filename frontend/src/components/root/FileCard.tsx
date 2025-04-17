@@ -110,6 +110,7 @@ const FileCard = ({ folderId, file }: FileCardProps) => {
       <AiChat
         isOpen={isAiDialogOpen}
         onOpenChange={setIsAiDialogOpen}
+        fileId={file.id}
         fileName={file.name}
       />
     </Card>

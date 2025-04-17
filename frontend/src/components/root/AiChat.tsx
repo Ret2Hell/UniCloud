@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Send } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Send, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,58 +11,82 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSendMessageMutation } from "@/state/api";
 
-const AiChat = ({ isOpen, onOpenChange, fileName }: AiChatProps) => {
+interface AiChatProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  fileId: string;
+  fileName: string;
+}
+
+const AiChat = ({ isOpen, onOpenChange, fileId, fileName }: AiChatProps) => {
   const [aiMessage, setAiMessage] = useState("");
   const [aiConversation, setAiConversation] = useState<
     { role: "user" | "ai"; content: string }[]
   >([]);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const [sendMessage, { isLoading }] = useSendMessageMutation();
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  useEffect(() => {
-    if (!scrollContainerRef.current || !shouldAutoScroll) return;
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const scrollContainer = scrollContainerRef.current;
-    scrollContainer.scrollTop = scrollContainer.scrollHeight;
-  }, [aiConversation, shouldAutoScroll]);
-
-  const handleScroll = () => {
-    if (!scrollContainerRef.current) return;
-
-    const { scrollTop, scrollHeight, clientHeight } =
-      scrollContainerRef.current;
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-    setShouldAutoScroll(isNearBottom);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // For testing purposes, we simulate an AI response until i implement the actual AI service.
-  const handleAiSend = () => {
-    if (!aiMessage.trim()) return;
+  useEffect(() => {
+    scrollToBottom();
+  }, [aiConversation, isLoading]);
+
+  useEffect(() => {
+    if (isOpen && !hasInitialized) {
+      setAiConversation([
+        {
+          role: "ai",
+          content: `Hello! I'm your AI assistant. Feel free to ask me any questions about this file, and I'll do my best to help you.`,
+        },
+      ]);
+      setHasInitialized(true);
+    }
+
+    if (!isOpen) {
+      setHasInitialized(false);
+    }
+  }, [isOpen, fileName, hasInitialized]);
+
+  const handleAiSend = async () => {
+    if (!aiMessage.trim() || isLoading) return;
 
     setAiConversation((prev) => [
       ...prev,
       { role: "user", content: aiMessage },
     ]);
+    setAiMessage("");
 
-    setShouldAutoScroll(true);
+    try {
+      const result = await sendMessage({
+        content: aiMessage,
+        fileId,
+      }).unwrap();
 
-    setTimeout(() => {
+      setAiConversation((prev) => [
+        ...prev,
+        { role: "ai", content: result.content },
+      ]);
+    } catch {
       setAiConversation((prev) => [
         ...prev,
         {
           role: "ai",
-          content: `I've analyzed "${fileName}". This is a simulated AI response. In a real implementation, this would connect to an AI service.`,
+          content: "Sorry, there was an error processing your request.",
         },
       ]);
-    }, 1000);
-
-    setAiMessage("");
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Chat with AI about {fileName}</DialogTitle>
           <DialogDescription>
@@ -70,30 +94,39 @@ const AiChat = ({ isOpen, onOpenChange, fileName }: AiChatProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col h-[400px]">
-          <div
-            ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto pr-4"
-            onScroll={handleScroll}
-          >
+        <div className="flex flex-col h-[500px]">
+          <div className="flex-1 overflow-y-auto pr-4">
             <div className="space-y-4 p-4">
               {aiConversation.length === 0 ? (
                 <p className="text-center text-muted-foreground text-sm py-8">
                   Start a conversation about this pdf file
                 </p>
               ) : (
-                aiConversation.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`p-3 rounded-lg ${
-                      message.role === "user"
-                        ? "bg-[#696cff] text-white ml-8"
-                        : "bg-muted mr-8"
-                    }`}
-                  >
-                    {message.content}
-                  </div>
-                ))
+                <>
+                  {aiConversation.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`p-3 rounded-lg ${
+                        message.role === "user"
+                          ? "bg-[#696cff] text-white ml-8"
+                          : "bg-muted mr-8"
+                      }`}
+                    >
+                      {message.content}
+                    </div>
+                  ))}
+
+                  {/* Loading indicator */}
+                  {isLoading && (
+                    <div className="flex items-center p-3 rounded-lg bg-muted mr-8">
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        AI is thinking...
+                      </span>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </>
               )}
             </div>
           </div>
@@ -104,10 +137,14 @@ const AiChat = ({ isOpen, onOpenChange, fileName }: AiChatProps) => {
               onChange={(e) => setAiMessage(e.target.value)}
               placeholder="Ask a question..."
               onKeyDown={(e) => e.key === "Enter" && handleAiSend()}
+              disabled={isLoading}
             />
-            <Button size="icon" onClick={handleAiSend}>
-              <Send className="h-4 w-4" />
-              <span className="sr-only">Send message</span>
+            <Button size="icon" onClick={handleAiSend} disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>

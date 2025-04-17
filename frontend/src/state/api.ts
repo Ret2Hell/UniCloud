@@ -263,10 +263,7 @@ export const api = createApi({
         },
       },
     }),
-    downloadPdf: builder.mutation<
-      boolean,
-      { id: string; parentId?: string | null }
-    >({
+    downloadPdf: builder.mutation({
       query: (id) => ({
         url: `api/files/download/${id}`,
         responseHandler: async (response) => {
@@ -345,6 +342,31 @@ export const api = createApi({
         },
       },
     }),
+    sendMessage: builder.mutation<
+      AiResponse,
+      {
+        content: string;
+        fileId: string;
+      }
+    >({
+      query: ({ content, fileId }) => ({
+        url: "graphql",
+        method: "POST",
+        body: {
+          query: `
+            mutation SendMessage($content: String!, $fileId: String!) {
+              sendMessage(content: $content, fileId: $fileId) {
+                role
+                content
+              }
+            }
+          `,
+          variables: { content, fileId },
+        },
+      }),
+      transformResponse: (response: { sendMessage: AiResponse }) =>
+        response.sendMessage,
+    }),
   }),
 });
 
@@ -360,4 +382,5 @@ export const {
   useDownloadPdfMutation,
   useDeleteFileMutation,
   useDeleteFolderMutation,
+  useSendMessageMutation,
 } = api;

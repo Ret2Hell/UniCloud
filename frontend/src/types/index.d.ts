@@ -100,6 +100,7 @@ declare global {
   interface AiChatProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
+    fileId: string;
     fileName: string;
   }
 
@@ -114,6 +115,11 @@ declare global {
   interface CardInfoProps {
     name: string;
     date: Date;
+  }
+
+  interface AiResponse {
+    role: "user" | "assistant";
+    content: string;
   }
 
   interface User {

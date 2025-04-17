@@ -9,6 +9,7 @@ import { join } from 'path';
 import { Request, Response } from 'express';
 import { FoldersModule } from './folders/folders.module';
 import { FilesModule } from './files/files.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { FilesModule } from './files/files.module';
     PrismaModule,
     FoldersModule,
     FilesModule,
+    ChatModule,
   ],
 })
 export class AppModule {}
