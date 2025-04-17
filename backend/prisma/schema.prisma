@@ -47,6 +47,7 @@ model File {
   size               Int
   path               String
   content            String?  @db.Text    
+  isBookmarked       Boolean  @default(false)
   folder             Folder   @relation(fields: [folderId], references: [id])
   folderId           String
   owner              User     @relation(fields: [ownerId], references: [id])

@@ -169,6 +169,7 @@ export const api = createApi({
                 name
                 size
                 path
+                isBookmarked
                 createdAt
                 updatedAt
               }
@@ -367,6 +368,78 @@ export const api = createApi({
       transformResponse: (response: { sendMessage: AiResponse }) =>
         response.sendMessage,
     }),
+    getBookmarkedFiles: builder.query({
+      query: () => ({
+        url: "/graphql",
+        method: "POST",
+        body: {
+          query: `
+            query {
+              bookmarkedFiles {
+                id
+                name
+                size
+                path
+                isBookmarked
+                createdAt
+                updatedAt
+              }
+            }
+          `,
+        },
+      }),
+      transformResponse: (response: { bookmarkedFiles: FileItem[] }) =>
+        response.bookmarkedFiles,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((file: { id: string }) => ({
+                type: "File" as const,
+                id: file.id,
+              })),
+              { type: "File", id: "BOOKMARKED_LIST" },
+            ]
+          : [{ type: "File", id: "BOOKMARKED_LIST" }],
+    }),
+    toggleBookmark: builder.mutation<
+      { id: string; isBookmarked: boolean },
+      { fileId: string; folderId?: string | null }
+    >({
+      query: ({ fileId }) => ({
+        url: "/graphql",
+        method: "POST",
+        body: {
+          query: `
+        mutation ToggleBookmark($fileId: String!) {
+          toggleBookmark(fileId: $fileId) {
+            id
+            isBookmarked
+          }
+        }
+      `,
+          variables: { fileId },
+        },
+      }),
+      invalidatesTags: (result, error, { folderId }) => {
+        if (folderId) {
+          return [
+            { type: "File", id: folderId },
+            { type: "File", id: "BOOKMARKED_LIST" },
+          ];
+        }
+        return [{ type: "File", id: "BOOKMARKED_LIST" }];
+      },
+      extraOptions: {
+        meta: {
+          toast: {
+            showSuccess: true,
+            showError: true,
+            successMessage: "Bookmark toggled successfully!",
+            errorMessage: "Failed to toggle bookmark!",
+          },
+        },
+      },
+    }),
   }),
 });
 
@@ -383,4 +456,6 @@ export const {
   useDeleteFileMutation,
   useDeleteFolderMutation,
   useSendMessageMutation,
+  useGetBookmarkedFilesQuery,
+  useToggleBookmarkMutation,
 } = api;

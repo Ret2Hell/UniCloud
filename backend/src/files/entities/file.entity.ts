@@ -14,6 +14,8 @@ export class File {
   @Field(() => String, { nullable: true })
   content?: string;
 
+  isBookmarked: boolean;
+
   ownerId: string;
 
   parentId?: string | null;

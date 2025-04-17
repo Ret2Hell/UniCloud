@@ -82,4 +82,36 @@ export class FilesService {
 
     return true;
   }
+
+  async findBookmarkedFiles(userId: string) {
+    return this.prisma.file.findMany({
+      where: {
+        ownerId: userId,
+        isBookmarked: true,
+      },
+    });
+  }
+
+  async toggleBookmark(fileId: string, userId: string) {
+    const file = await this.findOne(fileId);
+
+    if (!file) {
+      throw new BadRequestException('File not found');
+    }
+
+    if (file.ownerId !== userId) {
+      throw new BadRequestException(
+        'You are not authorized to modify this file',
+      );
+    }
+
+    const updated = await this.prisma.file.update({
+      where: { id: fileId },
+      data: {
+        isBookmarked: !file.isBookmarked,
+      },
+    });
+
+    return updated;
+  }
 }

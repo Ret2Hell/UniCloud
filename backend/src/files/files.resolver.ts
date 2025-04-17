@@ -30,4 +30,17 @@ export class FilesResolver {
   ) {
     return this.filesService.delete(fileId, userId);
   }
+
+  @Query(() => [File])
+  async bookmarkedFiles(@GetUser('sub') userId: string) {
+    return await this.filesService.findBookmarkedFiles(userId);
+  }
+
+  @Mutation(() => File)
+  async toggleBookmark(
+    @Args('fileId') fileId: string,
+    @GetUser('sub') userId: string,
+  ) {
+    return await this.filesService.toggleBookmark(fileId, userId);
+  }
 }

@@ -3,7 +3,13 @@
 import Image from "next/image";
 import React, { useState } from "react";
 import NavItem from "./NavItem";
-import { ChevronRight, ChevronLeft, Folder, Heart, LogOut } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronLeft,
+  Folder,
+  LogOut,
+  Bookmark,
+} from "lucide-react";
 import { useLogoutMutation } from "@/state/api";
 import { useRouter } from "next/navigation";
 
@@ -48,12 +54,8 @@ const AppSidebar = () => {
         <NavItem name="Explorer" href="/home" isCollapsed={isCollapsed}>
           <Folder />
         </NavItem>
-        <NavItem
-          name="My Collection"
-          href="/home/my-collection"
-          isCollapsed={isCollapsed}
-        >
-          <Heart />
+        <NavItem name="Bookmarks" href="/bookmarks" isCollapsed={isCollapsed}>
+          <Bookmark />
         </NavItem>
       </nav>
       <div className="mt-auto" onClick={handleLogout}>

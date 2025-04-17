@@ -23,6 +23,7 @@ type File {
   name: String!
   size: Float!
   path: String!
+  isBookmarked: Boolean!
   ownerId: String!
   parentId: String
   createdAt: Timestamp!
@@ -51,6 +52,7 @@ type Query {
   folders: [Folder!]!
   folder(id: String!): Folder!
   filesInFolder(folderId: String!): [File!]!
+  bookmarkedFiles: [File!]!
 }
 
 type Mutation {
@@ -58,6 +60,7 @@ type Mutation {
   deleteFolder(folderId: String!): Boolean!
   uploadPdf(folderId: String!, file: Upload!): File!
   deleteFile(fileId: String!): Boolean!
+  toggleBookmark(fileId: String!): File!
   sendMessage(content: String!, fileId: String!): ChatMessage!
 }
 

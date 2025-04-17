@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import {
+  Bookmark,
+  BookmarkCheck,
   Download,
   File,
   MessageSquare,
@@ -16,7 +18,11 @@ import {
 import CardInfo from "./CardInfo";
 import ConfirmationDialog from "./ConfirmationDialog";
 import AiChat from "./AiChat";
-import { useDeleteFileMutation, useDownloadPdfMutation } from "@/state/api";
+import {
+  useDeleteFileMutation,
+  useDownloadPdfMutation,
+  useToggleBookmarkMutation,
+} from "@/state/api";
 
 const FileCard = ({ folderId, file }: FileCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -59,6 +65,18 @@ const FileCard = ({ folderId, file }: FileCardProps) => {
       });
   };
 
+  const [toggleBookmark] = useToggleBookmarkMutation();
+  const handleToggle = () => {
+    toggleBookmark({ fileId: file.id, folderId })
+      .unwrap()
+      .then(() => {
+        console.log("Bookmark toggled successfully");
+      })
+      .catch((err) => {
+        console.error("Toggle bookmark failed", err);
+      });
+  };
+
   return (
     <Card className="p-4 hover:bg-accent transition-colors">
       <div className="flex items-start space-x-3">
@@ -79,6 +97,17 @@ const FileCard = ({ folderId, file }: FileCardProps) => {
               >
                 <Download className="mr-2 h-4 w-4 text-green-500" />
                 <span>Download</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer text-pink-500 focus:text-pink-500"
+                onClick={handleToggle}
+              >
+                {file.isBookmarked ? (
+                  <BookmarkCheck className="mr-2 h-4 w-4 text-pink-500" />
+                ) : (
+                  <Bookmark className="mr-2 h-4 w-4 text-pink-500" />
+                )}
+                <span>Bookmark</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer text-blue-500 focus:text-blue-500"

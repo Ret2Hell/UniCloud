@@ -47,6 +47,7 @@ declare global {
     name: string;
     size: number;
     path: string;
+    isBookmarked: boolean;
     createdAt: Date;
     updatedAt: Date;
   }
