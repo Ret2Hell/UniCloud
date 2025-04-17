@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as fs from 'fs';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import { parsePdf } from 'src/utils/pdf.parser.utils';
 
 @Injectable()
 export class FilesService {
@@ -23,8 +24,15 @@ export class FilesService {
     await new Promise((resolve, reject) => {
       stream.pipe(writeStream);
       stream.on('end', resolve);
-      stream.on('error', reject);
+      stream.on('error', (error) => {
+        writeStream.close();
+        reject(error);
+      });
     });
+
+    // Parse PDF content
+    const extractedText: string = await parsePdf(storagePath);
+
     const newFile = await this.prisma.folder.update({
       where: { id: folderId },
       data: {
@@ -33,6 +41,7 @@ export class FilesService {
             name: filename,
             size: fs.statSync(storagePath).size,
             path: storagePath,
+            content: extractedText,
             ownerId: userId,
           },
         },

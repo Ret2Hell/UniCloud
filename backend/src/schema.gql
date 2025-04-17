@@ -19,6 +19,7 @@ scalar Timestamp
 
 type File {
   id: ID!
+  content: String
   name: String!
   size: Float!
   path: String!

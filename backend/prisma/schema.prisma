@@ -45,7 +45,8 @@ model File {
   id                 String   @id @default(uuid())
   name               String
   size               Int
-  path               String   
+  path               String
+  content            String?  @db.Text    
   folder             Folder   @relation(fields: [folderId], references: [id])
   folderId           String
   owner              User     @relation(fields: [ownerId], references: [id])

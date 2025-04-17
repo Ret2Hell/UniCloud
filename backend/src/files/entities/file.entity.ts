@@ -11,6 +11,9 @@ export class File {
 
   path: string;
 
+  @Field(() => String, { nullable: true })
+  content?: string;
+
   ownerId: string;
 
   parentId?: string | null;
