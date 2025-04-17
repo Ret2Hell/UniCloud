@@ -47,6 +47,7 @@ declare global {
     name: string;
     size: number;
     path: string;
+    ownerId: string;
     isBookmarked: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -56,6 +57,7 @@ declare global {
     id: string;
     name: string;
     parentId?: string | null;
+    ownerId: string;
     files?: FileItem[];
     folders?: FolderItem[];
     createdAt: Date;

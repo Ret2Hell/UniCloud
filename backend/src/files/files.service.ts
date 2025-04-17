@@ -15,6 +15,9 @@ export class FilesService {
       throw new BadRequestException('Only PDF files are allowed');
     }
 
+    if (!fs.existsSync('uploads')) {
+      fs.mkdirSync('uploads', { recursive: true });
+    }
     const uniqueName = `${Date.now()}-${filename}`;
     const storagePath = `uploads/${uniqueName}`;
 

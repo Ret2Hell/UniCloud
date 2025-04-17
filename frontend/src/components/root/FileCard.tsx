@@ -18,15 +18,19 @@ import {
 import CardInfo from "./CardInfo";
 import ConfirmationDialog from "./ConfirmationDialog";
 import AiChat from "./AiChat";
+import { RootState } from "../../state/redux";
 import {
   useDeleteFileMutation,
   useDownloadPdfMutation,
   useToggleBookmarkMutation,
 } from "@/state/api";
+import { useSelector } from "react-redux";
 
 const FileCard = ({ folderId, file }: FileCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
+  const id = useSelector((state: RootState) => state.global.id);
+  const isOwner = id === file.ownerId;
 
   const [downloadPdf] = useDownloadPdfMutation();
   const [deleteFile] = useDeleteFileMutation();
@@ -116,13 +120,15 @@ const FileCard = ({ folderId, file }: FileCardProps) => {
                 <MessageSquare className="mr-2 h-4 w-4 text-blue-500" />
                 <span>Ask AI</span>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer text-destructive focus:text-destructive"
-                onClick={() => setIsDeleteDialogOpen(true)}
-              >
-                <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-                <span>Delete</span>
-              </DropdownMenuItem>
+              {isOwner && (
+                <DropdownMenuItem
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

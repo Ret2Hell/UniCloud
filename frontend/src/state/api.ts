@@ -132,6 +132,7 @@ export const api = createApi({
             id
             name
             parentId
+            ownerId
             createdAt
             updatedAt
             }
@@ -158,10 +159,13 @@ export const api = createApi({
             folder(id: "${id}") {
               id
               name
+              ownerId
               parentId    
               children {
                 id
                 name
+                parentId
+                ownerId
                 createdAt
                 updatedAt
               }
@@ -170,6 +174,7 @@ export const api = createApi({
                 name
                 size
                 path
+                ownerId
                 isBookmarked
                 createdAt
                 updatedAt

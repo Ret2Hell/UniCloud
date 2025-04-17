@@ -12,9 +12,13 @@ import { Trash2 } from "lucide-react";
 import CardInfo from "./CardInfo";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { useDeleteFolderMutation } from "@/state/api";
+import { useSelector } from "react-redux";
+import { RootState } from "../../state/redux";
 
 const FolderCard = ({ folder, parentId, onNavigate }: FolderCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const id = useSelector((state: RootState) => state.global.id);
+  const isOwner = id === folder.ownerId;
 
   const [deleteFolder] = useDeleteFolderMutation();
   const handleDelete = () => {
@@ -39,25 +43,27 @@ const FolderCard = ({ folder, parentId, onNavigate }: FolderCardProps) => {
       <div className="flex items-start space-x-3">
         <Folder className="h-6 w-6 text-blue-500 flex-shrink-0 mt-1" />
         <CardInfo name={folder.name} date={folder.createdAt} />
-        <div className="flex-shrink-0">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-gray-200/80 transition-colors">
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">Open menu</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="cursor-pointer text-destructive focus:text-destructive"
-                onClick={() => setIsDeleteDialogOpen(true)}
-              >
-                <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        {isOwner && (
+          <div className="flex-shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-gray-200/80 transition-colors">
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">Open menu</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
 
       <ConfirmationDialog
