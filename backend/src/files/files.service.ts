@@ -1,20 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateFileInput } from './dto/create-file.input';
+import * as fs from 'fs';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
 
 @Injectable()
 export class FilesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, input: CreateFileInput) {
+  async create(userId: string, folderId: string, file: FileUpload) {
+    const { createReadStream, filename, mimetype } = file;
+
+    if (mimetype !== 'application/pdf') {
+      throw new BadRequestException('Only PDF files are allowed');
+    }
+
+    const uniqueName = `${Date.now()}-${filename}`;
+    const storagePath = `uploads/${uniqueName}`;
+
+    const stream = createReadStream();
+    const writeStream = fs.createWriteStream(storagePath);
+
+    await new Promise((resolve, reject) => {
+      stream.pipe(writeStream);
+      stream.on('end', resolve);
+      stream.on('error', reject);
+    });
     const newFile = await this.prisma.folder.update({
-      where: { id: input.folderId },
+      where: { id: folderId },
       data: {
         files: {
           create: {
-            name: input.name,
-            size: input.size,
-            path: input.path,
+            name: filename,
+            size: fs.statSync(storagePath).size,
+            path: storagePath,
             ownerId: userId,
           },
         },
@@ -35,13 +53,20 @@ export class FilesService {
     });
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, userId: string): Promise<boolean> {
     const file = await this.findOne(id);
 
     if (!file) {
-      throw new Error(`File with ID ${id} not found`);
+      throw new BadRequestException('File not found');
     }
 
+    if (file.ownerId !== userId) {
+      throw new BadRequestException(
+        'You are not authorized to delete this file',
+      );
+    }
+
+    fs.unlinkSync(file.path);
     await this.prisma.file.delete({
       where: { id },
     });
