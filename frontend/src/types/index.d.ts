@@ -62,6 +62,7 @@ declare global {
   }
   interface FolderCardProps {
     folder: FolderItem;
+    parentId?: string | null;
     onNavigate: (id: string) => void;
   }
 

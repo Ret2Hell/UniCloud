@@ -263,7 +263,10 @@ export const api = createApi({
         },
       },
     }),
-    downloadPdf: builder.mutation({
+    downloadPdf: builder.mutation<
+      boolean,
+      { id: string; parentId?: string | null }
+    >({
       query: (id) => ({
         url: `api/files/download/${id}`,
         responseHandler: async (response) => {
@@ -309,6 +312,39 @@ export const api = createApi({
         },
       },
     }),
+    deleteFolder: builder.mutation<
+      boolean,
+      { id: string; parentId?: string | null }
+    >({
+      query: ({ id }) => ({
+        url: "/graphql",
+        method: "POST",
+        body: {
+          query: `
+          mutation DeleteFolder($id: String!) {
+            deleteFolder(folderId: $id)
+          }
+        `,
+          variables: { id },
+        },
+      }),
+      invalidatesTags: (result, error, { parentId }) => {
+        if (parentId) {
+          return [{ type: "Folder", id: parentId }];
+        }
+        return [{ type: "Folder", id: "LIST" }];
+      },
+      extraOptions: {
+        meta: {
+          toast: {
+            showSuccess: true,
+            showError: true,
+            successMessage: "Folder deleted successfully!",
+            errorMessage: "Failed to delete folder!",
+          },
+        },
+      },
+    }),
   }),
 });
 
@@ -323,4 +359,5 @@ export const {
   useUploadPdfMutation,
   useDownloadPdfMutation,
   useDeleteFileMutation,
+  useDeleteFolderMutation,
 } = api;

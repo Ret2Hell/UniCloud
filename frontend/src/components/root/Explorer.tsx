@@ -93,6 +93,7 @@ export default function Explorer({ id, data }: ExplorerProps) {
                   <FolderCard
                     key={folder.id}
                     folder={folder}
+                    parentId={id}
                     onNavigate={handleNavigateToFolder}
                   />
                 ))}

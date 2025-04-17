@@ -26,4 +26,13 @@ export class FoldersResolver {
   ) {
     return this.foldersService.create(id, input);
   }
+
+  @Mutation(() => Boolean)
+  async deleteFolder(
+    @Args('folderId') folderId: string,
+    @GetUser('sub') userId: string,
+  ) {
+    console.log('Deleting folder with ID:', folderId);
+    return this.foldersService.delete(folderId, userId);
+  }
 }

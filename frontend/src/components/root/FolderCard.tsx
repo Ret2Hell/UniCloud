@@ -11,13 +11,21 @@ import {
 import { Trash2 } from "lucide-react";
 import CardInfo from "./CardInfo";
 import ConfirmationDialog from "./ConfirmationDialog";
+import { useDeleteFolderMutation } from "@/state/api";
 
-const FolderCard = ({ folder, onNavigate }: FolderCardProps) => {
+const FolderCard = ({ folder, parentId, onNavigate }: FolderCardProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  const [deleteFolder] = useDeleteFolderMutation();
   const handleDelete = () => {
-    // Delete API call to delete the folder (imported from RTK query)
-    setIsDeleteDialogOpen(false);
+    deleteFolder({ id: folder.id, parentId })
+      .unwrap()
+      .then(() => {
+        setIsDeleteDialogOpen(false);
+      })
+      .catch((error) => {
+        console.error("Failed to delete folder:", error);
+      });
   };
 
   return (
