@@ -18,12 +18,13 @@ const customBaseQuery = async (
   extraOptions: any
 ) => {
   const baseQuery = fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+    baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
     credentials: "include",
   });
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result: any = await baseQuery(args, api, extraOptions);
+    console.log("API result:", process.env.NEXT_PUBLIC_BASE_URL);
     if (result.error) {
       if (result.error.status === 401) {
         document.cookie = "access_token=; Max-Age=0; path=/";
