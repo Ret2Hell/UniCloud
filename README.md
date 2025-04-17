@@ -44,8 +44,8 @@
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/Ret2Hell/uni-cloud.git
-   cd uni-cloud
+   git clone https://github.com/Ret2Hell/UniCloud.git
+   cd UniCloud
    ```
 
 2. **Configure environment variables:**
